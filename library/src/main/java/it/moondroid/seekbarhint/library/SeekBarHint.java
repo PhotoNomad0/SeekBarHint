@@ -4,12 +4,15 @@ package it.moondroid.seekbarhint.library;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
@@ -29,6 +32,7 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
     private int mPopupWidth;
     private int mPopupOffset;
     private boolean mPopupAlwaysShown;
+    private boolean mPopupDraggable;
     private int mPopupStyle;
     private int mPopupAnimStyle;
 
@@ -44,6 +48,9 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
     private OnSeekBarChangeListener mExternalListener;
 
     private SeekBarHintAdapter mHintAdapter;
+
+    private Rect childRect = new Rect();
+    private Point startPoint = new Point(0, 0);
 
     public SeekBarHint(Context context) {
         this(context, null);
@@ -67,6 +74,7 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
         mPopupStyle = a.getInt(R.styleable.SeekBarHint_popupStyle, POPUP_FOLLOW);
         mPopupAnimStyle = a.getResourceId(R.styleable.SeekBarHint_popupAnimationStyle, R.style.SeekBarHintPopupAnimation);
         mPopupAlwaysShown = a.getBoolean(R.styleable.SeekBarHint_popupAlwaysShown, false);
+        mPopupDraggable = a.getBoolean(R.styleable.SeekBarHint_popupDraggable, false);
         a.recycle();
 
         setOnSeekBarChangeListener(this);
@@ -90,8 +98,26 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
         mPopup = new PopupWindow(mPopupView, mPopupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, false);
         mPopup.setAnimationStyle(mPopupAnimStyle);
 
-        if (mPopupAlwaysShown) showPopupOnPost();
+        setPopupAlwaysShown(mPopupAlwaysShown);
+        setPopupDraggable(mPopupDraggable);
     }
+
+    private OnTouchListener popupTouchProxy = new OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            float x;
+            float y = getY();
+            if (getRotation() % 180f == 0f) {
+                x = event.getRawX() - getX();
+            } else {
+                getParent().getChildVisibleRect(SeekBarHint.this, childRect, startPoint);
+                x = event.getRawY() - childRect.top;
+                childRect.setEmpty();
+            }
+            event = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), event.getAction(), x, y, event.getMetaState());
+            return SeekBarHint.this.dispatchTouchEvent(event);
+        }
+    };
 
     private void showPopupOnPost() {
         post(new Runnable() {
@@ -154,6 +180,15 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
     public void setPopupAlwaysShown(boolean alwaysShown) {
         this.mPopupAlwaysShown = alwaysShown;
         if (alwaysShown) showPopupOnPost();
+    }
+
+    public boolean isPopupDraggable() {
+        return mPopupDraggable;
+    }
+
+    public void setPopupDraggable(boolean draggable) {
+        this.mPopupDraggable = draggable;
+        if (mPopupView != null) mPopupView.setOnTouchListener(draggable ? popupTouchProxy : null);
     }
 
     @Override
@@ -263,7 +298,11 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
     private Point getVerticalOffset() {
         int xOffset = (-getHeight() / 2 + getThumbOffset()) + mPopupOffset;
         //
-        int yOddOffset = -(getPaddingLeft() + getHeight() / 2 + getThumbOffset() / 3 * 2);
+        int offsetPadding = getPaddingLeft();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            offsetPadding = getPaddingStart();
+        }
+        int yOddOffset = -(offsetPadding + getHeight() / 2 + getThumbOffset());
         int yOffset = getFollowPosition() + yOddOffset;
         return new Point(xOffset, yOffset);
     }

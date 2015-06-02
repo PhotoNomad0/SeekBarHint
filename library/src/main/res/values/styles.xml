@@ -8,6 +8,7 @@
         <item name="popupAnimationStyle">@style/SeekBarHintPopupAnimation</item>
         <item name="popupOffset">0dp</item>
         <item name="popupAlwaysShown">false</item>
+        <item name="popupDraggable">true</item>
     </style>
     <style name="SeekBarHintPopupAnimation">
         <item name="@android:windowEnterAnimation">@anim/seekbar_hint_popup_show</item>

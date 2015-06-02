@@ -39,9 +39,10 @@ __Available attributes__
 + ``popupLayout``: layout to be used, must include ``android:id/text1 TextView``
 + ``popupStyle``: can be ``fixed`` or ``follow``
 + ``popupAnimationStyle``: in/out animation or fade if unspecified
-+ ``popupWidth``: the width of the popup or WRAP_CONTENT if unspecified
++ ``popupWidth``: the width of the popup or ``WRAP_CONTENT`` if unspecified
 + ``popupOffset``: distance from top/right of the seekbar widget
 + ``popupAlwaysShown``: do not dismiss popup after _onStopTrackingTouch_
++ ``popupDraggable``: enables progress change by hint popup dragging
 
 **2)** Add theme attribute
 ```xml

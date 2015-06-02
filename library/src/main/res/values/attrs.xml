@@ -12,5 +12,6 @@
         </attr>
         <attr name="popupAnimationStyle" format="reference"/>
         <attr name="popupAlwaysShown" format="boolean"/>
+        <attr name="popupDraggable" format="boolean" />
     </declare-styleable>
 </resources>
