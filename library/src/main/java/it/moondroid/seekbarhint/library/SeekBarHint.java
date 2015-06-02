@@ -148,6 +148,12 @@ public class SeekBarHint extends SeekBar implements SeekBar.OnSeekBarChangeListe
         }
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mPopup != null && mPopup.isShowing()) mPopup.dismiss();
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // Public api
     ///////////////////////////////////////////////////////////////////////////
